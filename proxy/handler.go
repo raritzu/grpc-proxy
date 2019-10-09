@@ -66,8 +66,7 @@ func (s *handler) handler(srv interface{}, serverStream grpc.ServerStream) error
 	}
 	// We require that the director's returned context inherits from the serverStream.Context().
 	outgoingCtx, backendConn, err := s.director(serverStream.Context(), fullMethodName)
-	// clientCtx, clientCancel := context.WithTimeout(outgoingCtx, 5*time.Minute)
-	clientCtx, _ := context.WithTimeout(outgoingCtx, 5*time.Minute)
+	clientCtx, clientCancel := context.WithTimeout(outgoingCtx, 5*time.Minute)
 	if err != nil {
 		return err
 	}
@@ -94,7 +93,7 @@ func (s *handler) handler(srv interface{}, serverStream grpc.ServerStream) error
 				// however, we may have gotten a receive error (stream disconnected, a read error etc) in which case we need
 				// to cancel the clientStream to the backend, let all of its goroutines be freed up by the CancelFunc and
 				// exit with an error to the stack
-				_
+				clientCancel()
 				return grpc.Errorf(codes.Internal, "failed proxying s2c: %v", s2cErr)
 			}
 		case c2sErr := <-c2sErrChan:
