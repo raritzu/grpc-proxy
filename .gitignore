@@ -24,3 +24,9 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+gradle/
+.gradle/
+gradle*
+
+*.iml
