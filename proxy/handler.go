@@ -5,6 +5,7 @@ package proxy
 
 import (
 	"io"
+	"time"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -65,7 +66,8 @@ func (s *handler) handler(srv interface{}, serverStream grpc.ServerStream) error
 	}
 	// We require that the director's returned context inherits from the serverStream.Context().
 	outgoingCtx, backendConn, err := s.director(serverStream.Context(), fullMethodName)
-	clientCtx, clientCancel := context.WithCancel(outgoingCtx)
+	d := time.Now().Add(300 * time.Second)
+    clientCtx, clientCancel := context.WithDeadline(outgoingCtx, d)
 	if err != nil {
 		return err
 	}
