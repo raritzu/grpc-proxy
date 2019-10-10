@@ -66,11 +66,9 @@ func (s *handler) handler(srv interface{}, serverStream grpc.ServerStream) error
 	}
 	// We require that the director's returned context inherits from the serverStream.Context().
 	outgoingCtx, backendConn, err := s.director(serverStream.Context(), fullMethodName)
-	clientCtx, clientCancel := context.WithTimeout(outgoingCtx, 5*time.Minute)
-	var cancel context.CancelFunc
-    clientCtx.ctx, cancel = context.WithTimeout(outgoingCtx, 5*time.Minute)
-    defer cancel()
-	defer clientCancel()
+	clientDeadline := time.Now().Add(5 * time.Minute)
+	//clientCtx, clientCancel := context.WithTimeout(outgoingCtx, 5*time.Minute)
+	clientCtx, clientCancel := context.WithDeadline(outgoingCtx, clientDeadline)
 	if err != nil {
 		return err
 	}
@@ -91,7 +89,7 @@ func (s *handler) handler(srv interface{}, serverStream grpc.ServerStream) error
 			if s2cErr == io.EOF {
 				// this is the happy case where the sender has encountered io.EOF, and won't be sending anymore./
 				// the clientStream>serverStream may continue pumping though.
-				clientStream.CloseSend()
+				//clientStream.CloseSend()
 				break
 			} else {
 				// however, we may have gotten a receive error (stream disconnected, a read error etc) in which case we need
