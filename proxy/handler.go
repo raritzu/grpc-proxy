@@ -69,6 +69,8 @@ func (s *handler) handler(srv interface{}, serverStream grpc.ServerStream) error
 	clientDeadline := time.Now().Add(5 * time.Minute)
 	//clientCtx, clientCancel := context.WithTimeout(outgoingCtx, 5*time.Minute)
 	clientCtx, clientCancel := context.WithDeadline(outgoingCtx, clientDeadline)
+	defer clientCancel()
+
 	if err != nil {
 		return err
 	}
@@ -89,7 +91,7 @@ func (s *handler) handler(srv interface{}, serverStream grpc.ServerStream) error
 			if s2cErr == io.EOF {
 				// this is the happy case where the sender has encountered io.EOF, and won't be sending anymore./
 				// the clientStream>serverStream may continue pumping though.
-				//clientStream.CloseSend()
+				clientStream.CloseSend()
 				break
 			} else {
 				// however, we may have gotten a receive error (stream disconnected, a read error etc) in which case we need
